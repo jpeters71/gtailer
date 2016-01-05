@@ -2,11 +2,13 @@ package main
 
 import (
     "bufio"
+	"fmt"
 	"log"
 	"net/http"
     
     "bozosonparade/gtailer/ws"
     "bozosonparade/gtailer/tailers"
+    "github.com/howeyc/gopass"
     "golang.org/x/crypto/ssh"    
 	"io"
     "os"
@@ -15,12 +17,19 @@ import (
 
 func main() {
 	log.SetFlags(log.Lshortfile)
+    reader := bufio.NewReader(os.Stdin)
+    
+    fmt.Printf("Please enter the ssh user to use:");
+    sshUser, _ := reader.ReadString('\n')
+    fmt.Printf("Password:");
+    sshPwd := string(gopass.GetPasswdMasked());
 
 	// websocket server
 	server := ws.NewServer("/entry")
 	go server.Listen()
 
-    go startSshClient(server)
+    go startSshClient(server, sshUser, sshPwd, "phxedupub11.qa", "phxedupub11.qa.aptimus.net")
+    go startSshClient(server, sshUser, sshPwd, "phxedupub12.qa", "phxedupub12.qa.aptimus.net")
 
 	// static files
 	http.Handle("/", http.FileServer(http.Dir("webroot")))
@@ -29,16 +38,18 @@ func main() {
     log.Fatal(http.ListenAndServeTLS(":7443", "cert.pem", "key.pem", nil))
 }
 
-func startSshClient(server *ws.Server) {
+func startSshClient(server *ws.Server, sshUser string, sshPwd string, hostName string, hostAddr string) {
     sshConfig := &ssh.ClientConfig {
-        User: "ubuntu",
+        User: sshUser,
         Auth: [] ssh.AuthMethod {
-            tailers.PublicKeyFile("F:/tools/pems/bozo-pair.pem"),
+            //tailers.PublicKeyFile("c:/jetbrains/gohome/bozo2-pair.pem"),
+            ssh.Password(sshPwd),
+            
         },
     }
     client := &tailers.SSHClient {
-        Name: "bozo-test-aws",
-        Host: "ec2-52-35-140-237.us-west-2.compute.amazonaws.com",
+        Name: hostName,
+        Host: hostAddr,
         Port: 22,
         Config: sshConfig,
     }
@@ -62,7 +73,8 @@ func startSshClient(server *ws.Server) {
     
 	cmd := &tailers.SSHCommand{
 		//Path:   "ls -lat /home",
-		Path:   "tail -f /var/log/boot.log /var/log/auth.log /var/log/kern.log /home/ubuntu/bozo.tst",
+		//Path:   "tail -f /var/log/boot.log /var/log/auth.log /var/log/kern.log /home/ubuntu/bozo.tst",
+        Path:   "tail -f /cust/appserver/logs/*.out /cust/appserver/logs/*.log /cust/aem/crx-quickstart/logs/*.log",
 		Env:    []string{},
 		Stdin:  os.Stdin,
 		Stdout: w,

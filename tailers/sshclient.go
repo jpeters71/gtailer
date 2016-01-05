@@ -1,23 +1,12 @@
 package tailers
 
 import (
-//    "bufio"
-//    "bytes"
     "fmt"
     "golang.org/x/crypto/ssh"
-//	"os"
 	"io/ioutil"
 	"strings"
 	"io"
 )
-/*
-type SSHCommand struct {
-	Path   string
-	Env    []string
-	Stdin  io.Reader
-	Stdout io.Writer
-	Stderr io.Writer
-}*/
 
 type SSHClient struct {
 	Name string `json:"name"`
@@ -125,55 +114,3 @@ func (client *SSHClient) newSession() (*ssh.Session, error) {
 
 	return session, nil
 }
-
-/*
-// For testing purposes
-func main() {
-    sshConfig := &ssh.ClientConfig {
-        User: "ubuntu",
-        Auth: [] ssh.AuthMethod {
-            PublicKeyFile("F:/tools/pems/bozo-pair.pem"),
-        },
-    }
-    client := &SSHClient {
-        Name: "bozo-test-aws",
-        Host: "----------",
-        Port: 22,
-        Config: sshConfig,
-    }
-
-    //var buff bytes.Buffer;
-    r,w := io.Pipe()
-    
-    go func() {
-        reader := bufio.NewReader(r)
-        for {
-            baLine, _, _ := reader.ReadLine();
-            strLine := string(baLine[:])
-            if len(strLine) > 0 {
-                fmt.Printf("BOZO: %s\n", strLine)
-            } 
-        }    
-    }()
-    
-    
-	cmd := &SSHCommand{
-		//Path:   "ls -lat /home",
-		Path:   "tail -f /var/log/boot.log /var/log/auth.log /var/log/kern.log",
-		Env:    []string{},
-		Stdin:  os.Stdin,
-		Stdout: w,
-		Stderr: os.Stderr,
-	}    
-    
-    fmt.Printf("Running command: %s\n", cmd.Path)
-	if err := client.RunCommand(cmd); err != nil {
-		fmt.Fprintf(os.Stderr, "command run error: %s\n", err)
-		os.Exit(1)
-	}
-    fmt.Printf("Done: \n")
-    
-    
-    //io.Copy(os.Stdout, &buff)
-}
-*/
