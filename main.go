@@ -24,8 +24,9 @@ func main() {
 
 	// static files
 	http.Handle("/", http.FileServer(http.Dir("webroot")))
-
-	log.Fatal(http.ListenAndServe(":8080", nil))
+    
+	//log.Fatal(http.ListenAndServe(":8080", nil))
+    log.Fatal(http.ListenAndServeTLS(":7443", "cert.pem", "key.pem", nil))
 }
 
 func startSshClient(server *ws.Server) {
