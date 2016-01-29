@@ -1,35 +1,16 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="UTF-8" />
-		<title>GTailer Baby!</title>
-    <link rel="stylesheet" href="vender/bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="vender/bootstrap/css/bootstrap-responsive.min.css">
-		<script src="vender/jquery-2.1.4.min.js"></script>
-		<script src="vender/bootstrap/js/bootstrap.min.js"></script>
-		</script>
-		<script src="vender/knockout-3.4.0.js">
-		</script>
-		<script src="vender/jquery.json-2.5.1.min.js">
-		</script>
-		<script data-main="js/main" src="vender/require.js">
-		</script>
-	</head>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Pick Operation</title>
+        <link rel="stylesheet" type="text/css" media="screen" href="css/main.css" />
+        <script src="vender/jquery-2.1.4.min.js"></script>
+        <script src="js/index.js"></script>
+    </head>
 
-	<body>
-
-	<div class="grid-row">
-
-		<div class="span12">
-
-			<h1>Messages</h1>
-			<div data-bind="foreach: messages">
-				<div>
-					<pre data-bind="text:printout">
-					</pre>
-				</div>
-			</div>
-
-		</div>
-	</body>
+    <body>
+        <h2>Pick Operation</h2>
+        <ul id="operation-list">
+        </ul>
+    </body>
 </html>

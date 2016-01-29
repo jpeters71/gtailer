@@ -1,32 +1,33 @@
 package tailers
 
 import (
-    "fmt"
-    "golang.org/x/crypto/ssh"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"strings"
-	"io"
+
+	"golang.org/x/crypto/ssh"
 )
 
 type SSHClient struct {
-	Name string `json:"name"`
-	Host string `json:"host"`
-	Port int `json:"port"`
-    Config *ssh.ClientConfig `json:"-"`
+	Name   string            `json:"name"`
+	Host   string            `json:"host"`
+	Port   int               `json:"port"`
+	Config *ssh.ClientConfig `json:"-"`
 }
 
 func PublicKeyFile(file string) ssh.AuthMethod {
 	buffer, err := ioutil.ReadFile(file)
 	if err != nil {
-        fmt.Print("ERROR opening file\n")
-        fmt.Println(err)
+		fmt.Print("ERROR opening file\n")
+		fmt.Println(err)
 		return nil
 	}
 
 	key, err := ssh.ParsePrivateKey(buffer)
 	if err != nil {
-        fmt.Print("ERROR parsing file\n")
-        fmt.Println(err)
+		fmt.Print("ERROR parsing file\n")
+		fmt.Println(err)
 		return nil
 	}
 	return ssh.PublicKeys(key)
@@ -42,13 +43,29 @@ func (client *SSHClient) RunCommand(cmd *SSHCommand) error {
 		return err
 	}
 	defer session.Close()
-	
+
 	if err = client.prepareCommand(session, cmd); err != nil {
 		return err
 	}
 
 	err = session.Run(cmd.Path)
 	return err
+}
+
+func (client *SSHClient) RunCommandAndWait(cmd *SSHCommand) ([]byte, error) {
+	var (
+		session *ssh.Session
+		err     error
+		baData  []byte
+	)
+
+	if session, err = client.newSession(); err != nil {
+		return nil, err
+	}
+	defer session.Close()
+
+	baData, err = session.Output(cmd.Path)
+	return baData, err
 }
 
 func (client *SSHClient) prepareCommand(session *ssh.Session, cmd *SSHCommand) error {

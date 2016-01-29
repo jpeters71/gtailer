@@ -1,91 +1,70 @@
 package main
 
+// This app is a server for client requests for ssh type stuff.
+
 import (
-    "bufio"
+	"bufio"
 	"fmt"
 	"log"
 	"net/http"
-    
-    "bozosonparade/gtailer/ws"
-    "bozosonparade/gtailer/tailers"
-    "github.com/howeyc/gopass"
-    "golang.org/x/crypto/ssh"    
-	"io"
-    "os"
+	"strings"
 
+	"github.com/howeyc/gopass"
+
+	"bozosonparade/gsh"
+	"bozosonparade/gtailer/resources"
+	"os"
 )
 
+// main is the entry point for this app.
 func main() {
 	log.SetFlags(log.Lshortfile)
-    reader := bufio.NewReader(os.Stdin)
-    
-    fmt.Printf("Please enter the ssh user to use:");
-    sshUser, _ := reader.ReadString('\n')
-    fmt.Printf("Password:");
-    sshPwd := string(gopass.GetPasswdMasked());
+	aConfigs := gsh.LoadConfigs()
 
-	// websocket server
-	server := ws.NewServer("/entry")
-	go server.Listen()
+	strConfs := ""
+	for _, conf := range aConfigs {
+		if len(strConfs) > 0 {
+			strConfs += ", "
+		}
+		strConfs += conf.Name
+	}
+	strConfig := readLine(fmt.Sprintf("Select configuration to load (%s): ", strConfs))
 
-    go startSshClient(server, sshUser, sshPwd, "phxedupub11.qa", "phxedupub11.qa.aptimus.net")
-    go startSshClient(server, sshUser, sshPwd, "phxedupub12.qa", "phxedupub12.qa.aptimus.net")
+	for _, conf := range aConfigs {
+		if strings.EqualFold(conf.Name, strConfig) {
+			gsh.CurrentConfig = &conf
+			break
+		}
+	}
+	if gsh.CurrentConfig == nil {
+		log.Fatalf("Unable to load config %s", strConfig)
+	}
 
+	resources.SshUser = readLine("Please enter the ssh user to use: ")
+	fmt.Printf("Password:")
+	resources.SshPwd = string(gopass.GetPasswdMasked())
+
+	/*
+		go startSshClient(server, sshUser, sshPwd, "phxedupub11.qa", "phxedupub11.qa.aptimus.net")
+		go startSshClient(server, sshUser, sshPwd, "phxedupub12.qa", "phxedupub12.qa.aptimus.net")
+	*/
+	// other service endpoints
+	http.HandleFunc("/hosts", resources.HostsResourceHandler)
+	http.HandleFunc("/operations", resources.OperationsResourceHandler)
+	http.HandleFunc("/subscribe/", resources.SubscribeResourceHandler)
 	// static files
 	http.Handle("/", http.FileServer(http.Dir("webroot")))
-    
+
 	//log.Fatal(http.ListenAndServe(":8080", nil))
-    log.Fatal(http.ListenAndServeTLS(":7443", "cert.pem", "key.pem", nil))
+	log.Fatal(http.ListenAndServeTLS(":7443", "cert.pem", "key.pem", nil))
 }
 
-func startSshClient(server *ws.Server, sshUser string, sshPwd string, hostName string, hostAddr string) {
-    sshConfig := &ssh.ClientConfig {
-        User: sshUser,
-        Auth: [] ssh.AuthMethod {
-            //tailers.PublicKeyFile("c:/jetbrains/gohome/bozo2-pair.pem"),
-            ssh.Password(sshPwd),
-            
-        },
-    }
-    client := &tailers.SSHClient {
-        Name: hostName,
-        Host: hostAddr,
-        Port: 22,
-        Config: sshConfig,
-    }
+func readLine(msg string) string {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print(msg)
+	text, _ := reader.ReadString('\n')
+	// Clear out white space
+	text = strings.TrimSpace(text)
 
-    //var buff bytes.Buffer;
-    r,w := io.Pipe()
-    
-    go func() {
-        reader := bufio.NewReader(r)
-        for {
-            baLine, _, _ := reader.ReadLine();
-            strLine := string(baLine[:])
-            if len(strLine) > 0 {
-                log.Printf("BOZO: %s\n", strLine)
-                msg := ws.Message {client.Host, client.Name, strLine}
-                server.SendAll(&msg)
-            } 
-        }    
-    }()
-    
-    
-	cmd := &tailers.SSHCommand{
-		//Path:   "ls -lat /home",
-		//Path:   "tail -f /var/log/boot.log /var/log/auth.log /var/log/kern.log /home/ubuntu/bozo.tst",
-        Path:   "tail -f /cust/appserver/logs/*.out /cust/appserver/logs/*.log /cust/aem/crx-quickstart/logs/*.log",
-		Env:    []string{},
-		Stdin:  os.Stdin,
-		Stdout: w,
-		Stderr: os.Stderr,
-	}    
-    
-    log.Printf("Running command: %s\n", cmd.Path)
-	if err := client.RunCommand(cmd); err != nil {
-		log.Fatal("command run error: %s\n", err)
-		os.Exit(1)
-	}
-    log.Printf("Done: \n")
-    
+	return text
 }

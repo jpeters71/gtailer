@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>GTailer</title>
+        <link rel="stylesheet" type="text/css" media="screen" href="css/main.css" />
+        <script src="vender/jquery-2.1.4.min.js"></script>
+        <script src="js/service-tail.js"></script>
+    </head>
+
+    <body>
+        <h2>Log Messages</h2>
+        <div>
+            <div>
+                <div class="navbar">
+                    <input type="checkbox" id="holdBtn" name="holdBtn" value="hold">Hold</input>
+                    <div id="host-list"></div>
+                </div>
+                <div class="explorer">
+                    <div id="logMessagesPar" style="overflow: scroll; height: 800px; width: 100%;">
+                        <div id="logMessages" class="rTable">
+                            <div class="rTableRow">
+                                <div class="rTableHead"><strong>Host</strong></div>
+                                <div class="rTableHead"><strong>Message</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

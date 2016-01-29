@@ -3,14 +3,11 @@ package ws
 import (
 	"log"
 	"net/http"
+
 	"golang.org/x/net/websocket"
-/*    "runtime"
-    "strconv"
-    "time"
-    */
 )
 
-// Chat server.
+// Server definition.
 type Server struct {
 	pattern   string
 	clients   map[int]*Client
@@ -29,7 +26,7 @@ func NewServer(pattern string) *Server {
 	sendAllCh := make(chan *Message)
 	doneCh := make(chan bool)
 	errCh := make(chan error)
-    s := Server{
+	s := Server{
 		pattern,
 		clients,
 		addCh,
@@ -39,16 +36,6 @@ func NewServer(pattern string) *Server {
 		errCh,
 	}
 
-    
-/*    go func() {
-        
-        for {
-            time.Sleep(time.Second * 3)
-            sendAllCh <- &Message{"System", "Time: " + time.Now().Format(time.RFC1123Z) + ", number of clients: " + strconv.Itoa(len(s.clients))}
-            runtime.GC();
-        }
-    }()
-*/
 	return &s
 }
 
