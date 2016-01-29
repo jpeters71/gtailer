@@ -4,6 +4,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -19,17 +20,25 @@ import (
 // main is the entry point for this app.
 func main() {
 	log.SetFlags(log.Lshortfile)
+	configPtr := flag.String("config", "", "Config name to use.")
+	userPtr := flag.String("user", "", "Username to use for sshing.")
 	aConfigs := gsh.LoadConfigs()
+	strConfig := ""
+	flag.Parse()
 
-	strConfs := ""
-	for _, conf := range aConfigs {
-		if len(strConfs) > 0 {
-			strConfs += ", "
+	if len(*configPtr) > 0 {
+		strConfig = *configPtr
+		fmt.Printf("Using config: %s\n", strConfig)
+	} else {
+		strConfs := ""
+		for _, conf := range aConfigs {
+			if len(strConfs) > 0 {
+				strConfs += ", "
+			}
+			strConfs += conf.Name
 		}
-		strConfs += conf.Name
+		strConfig = readLine(fmt.Sprintf("Select configuration to load (%s): ", strConfs))
 	}
-	strConfig := readLine(fmt.Sprintf("Select configuration to load (%s): ", strConfs))
-
 	for _, conf := range aConfigs {
 		if strings.EqualFold(conf.Name, strConfig) {
 			gsh.CurrentConfig = &conf
@@ -39,15 +48,15 @@ func main() {
 	if gsh.CurrentConfig == nil {
 		log.Fatalf("Unable to load config %s", strConfig)
 	}
-
-	resources.SshUser = readLine("Please enter the ssh user to use: ")
+	if len(*userPtr) > 0 {
+		resources.SshUser = *userPtr
+		fmt.Printf("Using user: %s\n", resources.SshUser)
+	} else {
+		resources.SshUser = readLine("Please enter the ssh user to use: ")
+	}
 	fmt.Printf("Password:")
 	resources.SshPwd = string(gopass.GetPasswdMasked())
 
-	/*
-		go startSshClient(server, sshUser, sshPwd, "phxedupub11.qa", "phxedupub11.qa.aptimus.net")
-		go startSshClient(server, sshUser, sshPwd, "phxedupub12.qa", "phxedupub12.qa.aptimus.net")
-	*/
 	// other service endpoints
 	http.HandleFunc("/hosts", resources.HostsResourceHandler)
 	http.HandleFunc("/operations", resources.OperationsResourceHandler)
@@ -56,6 +65,7 @@ func main() {
 	http.Handle("/", http.FileServer(http.Dir("webroot")))
 
 	//log.Fatal(http.ListenAndServe(":8080", nil))
+	fmt.Println("gSSH Utilities started and serving data.")
 	log.Fatal(http.ListenAndServeTLS(":7443", "cert.pem", "key.pem", nil))
 }
 
