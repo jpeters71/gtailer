@@ -20,12 +20,14 @@ import (
 // main is the entry point for this app.
 func main() {
 	log.SetFlags(log.Lshortfile)
+	// Command line flags
 	configPtr := flag.String("config", "", "Config name to use.")
 	userPtr := flag.String("user", "", "Username to use for sshing.")
 	aConfigs := gsh.LoadConfigs()
 	strConfig := ""
 	flag.Parse()
 
+	// Check command line options
 	if len(*configPtr) > 0 {
 		strConfig = *configPtr
 		fmt.Printf("Using config: %s\n", strConfig)

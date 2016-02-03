@@ -6,7 +6,7 @@ var indexInit = (function() {
             $.getJSON("/operations", function(data) {
                 var lst = [];
                 $.each(data, function(key, val) {
-                    lst.push("<li id='li_" + val.name + "'><a href='/" + val.name + ".html'>" + val.name + "</a></li>");
+                    lst.push("<li id='li_" + val.name + "'><a href='" + val['link-url'] + "'>" + val.title + "</a></li>");
                 });
                 $("#operation-list").html(lst.join(""));
             });

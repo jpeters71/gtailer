@@ -11,15 +11,17 @@ import (
 // HostsResourceHandler handles requests to the /hosts/ path
 func HostsResourceHandler(w http.ResponseWriter, r *http.Request) {
 	mVals := r.URL.Query()
-	strOp := mVals.Get("operation")
+	aOps := mVals["operation"]
 	var aRet []gsh.HostConfig
 
-	if len(strOp) > 0 {
-		for _, host := range gsh.CurrentConfig.Hosts {
-			for _, strOpConf := range host.SupportedOperations {
-				if strings.EqualFold(strOp, strOpConf) {
-					aRet = append(aRet, host)
-					break
+	if len(aOps) > 0 {
+		for _, strOp := range aOps {
+			for _, host := range gsh.CurrentConfig.Hosts {
+				for _, strOpConf := range host.SupportedOperations {
+					if strings.EqualFold(strOp, strOpConf) {
+						aRet = append(aRet, host)
+						break
+					}
 				}
 			}
 		}
